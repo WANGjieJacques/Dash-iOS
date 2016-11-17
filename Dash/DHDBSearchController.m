@@ -34,6 +34,7 @@
     controller.displayController.searchBar.autocapitalizationType = UITextAutocapitalizationTypeNone;
     [controller hookToSearchDisplayController:viewController.searchDisplayController];
     [[NSNotificationCenter defaultCenter] addObserver:controller selector:@selector(traitCollectionDidChange:) name:DHWindowChangedTraitCollection object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:controller selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
     return controller;
 }
 
@@ -307,6 +308,20 @@
     if(didAddAttributes)
     {
         cell.textLabel.attributedText = string;
+    }
+}
+
+- (void)orientationChanged:(id)sender
+{
+    if(self.displayController.active && self.displayController.searchBar.text.length)
+    {
+        NSString *query = self.displayController.searchBar.text;
+        [self.displayController setActive:NO animated:NO];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.00 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self.displayController setActive:YES animated:NO];
+            self.displayController.searchBar.text = query;
+            [self.displayController.searchBar becomeFirstResponder];
+        });
     }
 }
 
